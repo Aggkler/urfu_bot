@@ -10,3 +10,9 @@ PORT = os.getenv('PORT')
 DBNAME = os.getenv('DBNAME')
 USER = os.getenv('USER')
 PASSWORD = os.getenv('PASSWORD')
+
+ADMIN_IDS = [
+    int(admin_id.strip())
+    for admin_id in os.getenv('ADMIN_IDS', '').split(',')
+    if admin_id.strip().isdigit()
+]
