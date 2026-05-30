@@ -11,7 +11,8 @@ from app.db.repository import (
     create_material,
     get_materials,
     get_material_by_id,
-    get_student_ids
+    get_student_ids,
+    get_all_materials
 )
 from config import settings
 
@@ -150,7 +151,7 @@ def register_handlers(bot: telebot.TeleBot):
                 'Команды:\n'
                 '/publish Название | Текст материала — опубликовать материал\n'
                 '/materials — список материалов\n'
-                '/users — список пользователей'
+                '/users — список пользователей',
             )
 
         elif role == 'admin':
@@ -161,7 +162,7 @@ def register_handlers(bot: telebot.TeleBot):
                 '/setrole @username teacher — назначить преподавателя\n'
                 '/publish Название | Текст материала — опубликовать материал\n'
                 '/materials — список материалов\n'
-                '/users — список пользователей'
+                '/users — список пользователей\n'
             )
 
         else:
@@ -180,7 +181,6 @@ def register_handlers(bot: telebot.TeleBot):
             message.chat.id,
             f'Твой Telegram ID: {message.from_user.id}'
         )
-
 
     @bot.message_handler(commands=['role'])
     def role_handler(message: telebot.types.Message) -> None:
@@ -317,7 +317,6 @@ def register_handlers(bot: telebot.TeleBot):
             parse_mode='HTML'
         )
 
-
     @bot.message_handler(
         func=lambda message: get_message_text(message).startswith('/publish'),
         content_types=['text', 'document', 'photo', 'video', 'audio']
@@ -418,8 +417,9 @@ def register_handlers(bot: telebot.TeleBot):
         for material in materials:
             material_id = material['id']
             title = html.escape(material['title'])
-            created_at = material['created_at'].strftime('%d.%m.%Y %H:%M')
-            text += f'#{material_id} — {title} — {created_at}\n'
+            # created_at = material['created_at'].strftime('%d.%m.%Y %H:%M')
+            # text += f'#{material_id} — {title} — {created_at}\n'
+            text += f'ID: {material_id} — {title}\n'
 
         text += '\nЧтобы открыть материал, напиши:\n/material 1'
 

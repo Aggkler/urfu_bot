@@ -88,6 +88,14 @@ def get_users():
         fetchall=True
     )
 
+def get_all_materials():
+    return execute_query(
+        """
+        SELECT id, title FROM materials;
+        """,
+        fetchall=True
+    )
+
 
 def create_material(
     title: str,
