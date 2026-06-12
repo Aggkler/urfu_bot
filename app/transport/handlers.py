@@ -12,7 +12,6 @@ from app.db.repository import (
     get_materials,
     get_material_by_id,
     get_student_ids,
-    get_all_materials
 )
 from config import settings
 
