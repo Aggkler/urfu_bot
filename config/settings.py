@@ -11,6 +11,9 @@ DBNAME = os.getenv('DBNAME')
 USER = os.getenv('USER')
 PASSWORD = os.getenv('PASSWORD')
 
+CHANNEL_ID = int(os.getenv('CHANNEL_ID', '0'))
+CHANNEL_USERNAME = os.getenv('CHANNEL_USERNAME')
+
 ADMIN_IDS = [
     int(admin_id.strip())
     for admin_id in os.getenv('ADMIN_IDS', '').split(',')
