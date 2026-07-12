@@ -61,3 +61,10 @@ async def is_user_banned(telegram_id: int) -> bool:
             "SELECT is_banned FROM members WHERE telegram_id = $1", telegram_id
         )
         return bool(row and row["is_banned"])
+
+async def is_admin_member(telegram_id: int) -> bool:
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            'SELECT role FROM members WHERE telegram_id = $1', telegram_id
+        )
+        return bool(row and row["role"])
