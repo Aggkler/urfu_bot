@@ -54,6 +54,16 @@ async def update_subscription_status(telegram_id: int, is_subscribed: bool):
             telegram_id, is_subscribed,
         )
 
+async def create_files(beatmaker_id: int, telegram_file_id: str, telegram_file_unique_id: str, file_name: str,
+                       type_id: int):
+    async with pool.acquire() as conn:
+        await conn.execute(
+            '''
+            INSERT INTO files (beatmaker_id, telegram_file_id, telegram_file_unique_id, file_name, type_id)
+            VALUES ($1, $2, $3, $4)
+            ''',
+            beatmaker_id, telegram_file_id, telegram_file_unique_id, file_name, type_id
+        )
 
 async def is_user_banned(telegram_id: int) -> bool:
     async with pool.acquire() as conn:
@@ -67,4 +77,11 @@ async def is_admin_member(telegram_id: int) -> bool:
         row = await conn.fetchrow(
             'SELECT role FROM members WHERE telegram_id = $1', telegram_id
         )
-        return bool(row and row["role"])
+        return (row and row["role"]) == 'admin'
+
+async def get_telegram_file_id_from_author(author_id: int) -> list[str]:
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            'SELECT telegram_file_id FROM files WHERE beatmaker_id = $1', author_id
+        )
+        return [row["telegram_file_id"] for row in rows]

@@ -1,13 +1,14 @@
 import asyncio
 
 from aiogram import Router
-from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
-from aiogram.types import Message
+from aiogram.types import Message, InputMediaDocument
 from aiogram.types import CallbackQuery
 from aiogram import F
 
-from database.db import get_or_create_member, is_admin_member
+from database.db import get_or_create_member, is_admin_member, create_files, get_telegram_file_id_from_author
+from handlers.beatmaker import Beatmaker
+from handlers.type_of_file import TypeOfFile
 from keyboards.beatmaker_kb import get_beatmaker_keyboard
 from keyboards.return_kb import get_return_keyboard
 
@@ -34,6 +35,7 @@ async def cmd_start(message: Message):
 @router.callback_query(F.data == 'get_nest')
 async def get_nest(callback: CallbackQuery):
     await callback.answer("NEST")
+    await callback.message.delete()
     lst_word_nest = ['<b>Nest</b>\n\nРыжков Константин Анатольевич (родился 27 марта 2003 года)',
                 ' - саунд-продюсер родом из Екатеринбурга, работавший с такими артистами, как <b>Yeat</b>,',
                 '<b>OG Buda</b>, <b>Платина</b> и другими.\n\n','<b>Социальные сети:</b>\n',
@@ -44,10 +46,20 @@ async def get_nest(callback: CallbackQuery):
         caption=''.join(lst_word_nest),
         reply_markup=get_return_keyboard()
     )
+    files = await get_telegram_file_id_from_author(1)
+    media = [
+        InputMediaDocument(media=file)
+        for file in files
+    ]
+    await callback.bot.send_media_group(
+        chat_id=callback.message.chat.id,
+        media=media,
+    )
 
 @router.callback_query(F.data == 'get_visagangbeatz')
 async def get_visagangbeatz(callback: CallbackQuery):
     await callback.answer("VisaGangBeatz")
+    await callback.message.delete()
     lst_word_vgb = ['<b>VisaGangBeatz</b>\n\nРудиков Александр Сергеевич (родился 16 апреля 2002 года)',
                 '— мультиплатиновый продюсер и звукорежиссёр из Москвы. Состоит в творческом объединении ',
                '<b>DooMasters</b>.\n\n', '<b>Социальные сети:</b>\n',
@@ -60,9 +72,21 @@ async def get_visagangbeatz(callback: CallbackQuery):
         caption=''.join(lst_word_vgb),
         reply_markup=get_return_keyboard()
     )
+    files = await get_telegram_file_id_from_author(2)
+    media = [
+        InputMediaDocument(media=file)
+        for file in files
+    ]
+    await callback.bot.send_media_group(
+        chat_id=callback.message.chat.id,
+        media=media,
+    )
+
+
 @router.callback_query(F.data == 'get_kennycarter')
 async def get_kennycarter(callback: CallbackQuery):
     await callback.answer("Kennycarter & young dexn")
+    await callback.message.delete()
     lst_word_kenny = ['<b>Kennycarter & young dexn</b>\n\nПаустовойт Богдан Сергеевич и Шаронов Денис Александрович ',
                       '- российские платиновые продюсеры\nwork w/ ',
                       'pepel nahudi, madk1d, newlightchild, heronwater, шайни, xxxmanera, deathmarried, huzzy b...\n\n',
@@ -73,10 +97,20 @@ async def get_kennycarter(callback: CallbackQuery):
         caption=''.join(lst_word_kenny),
         reply_markup=get_return_keyboard()
     )
+    files = await get_telegram_file_id_from_author(3)
+    media = [
+        InputMediaDocument(media=file)
+        for file in files
+    ]
+    await callback.bot.send_media_group(
+        chat_id=callback.message.chat.id,
+        media=media,
+    )
 
 @router.callback_query(F.data == 'get_slavamarlow')
 async def get_slavamarlow(callback: CallbackQuery):
     await callback.answer("Slava Marlow")
+    await callback.message.delete()
     lst_word_slava = ['<b>Slava Marlow</b>\n\nГотлиб Артём Артёмович (родился 27 октября 1999 года в Новосибирске) ',
                       '— российский музыкальный исполнитель, продюсер, звукорежиссёр, дизайнер и блогер\n\n',
                       '<b>Социальные сети:</b>\n',
@@ -88,10 +122,20 @@ async def get_slavamarlow(callback: CallbackQuery):
         caption=''.join(lst_word_slava),
         reply_markup=get_return_keyboard()
     )
+    files = await get_telegram_file_id_from_author(4)
+    media = [
+        InputMediaDocument(media=file)
+        for file in files
+    ]
+    await callback.bot.send_media_group(
+        chat_id=callback.message.chat.id,
+        media=media,
+    )
 
 @router.callback_query(F.data == 'get_treepside')
 async def get_treepside(callback: CallbackQuery):
     await callback.answer("Treepside")
+    await callback.message.delete()
     lst_word_treepside = ['<b>Treepside</b>\n\nЕгор Юрьевич Ковалёв (родился 14 марта 1999 года)',
                           '— продюсер и звукоинженер. Первую большую популярность получил благодаря ',
                           'ремиксу на трек Платины — «Валентина».\n', 'work w/ OG Buda, MAYOT, uglystephan, ',
@@ -103,6 +147,15 @@ async def get_treepside(callback: CallbackQuery):
         caption=''.join(lst_word_treepside),
         reply_markup=get_return_keyboard()
     )
+    files = await get_telegram_file_id_from_author(5)
+    media = [
+        InputMediaDocument(media=file)
+        for file in files
+    ]
+    await callback.bot.send_media_group(
+        chat_id=callback.message.chat.id,
+        media=media,
+    )
 
 @router.message(F.photo)
 async def get_photo(message: Message):
@@ -113,22 +166,24 @@ async def get_photo(message: Message):
     print(photo.file_unique_id)
 
 @router.message(F.document and F.caption.lower().startswith("/create"))
-async def get_document(message: Message):
+async def set_document(message: Message):
     async with lock:
         is_admin = await is_admin_member(message.from_user.id)
         if is_admin:
-            print(message.caption)
+            author = message.caption.split()[1].upper()
+            author_id = Beatmaker[author].value
+            type_file = message.caption.split()[2].upper()
+            type_id = TypeOfFile[type_file].value
             document = message.document
-            print(f'file id - {document.file_id}')
-            print(f'file unique id - {document.file_unique_id}')
-            print(f'name file - {document.file_name}')
-
+            await create_files(author_id, document.file_id, document.file_unique_id, document.file_name, type_id)
+        else:
+            await echo(message)
 
 @router.message()
 async def echo(message: Message):
     await message.answer("Команда не распознана.\nИспользуйте /start")
-    print(message.entities)  # Убрать потом
-    print(message)  # Убрать потом
+    # print(message.entities)  # Убрать потом
+    # print(message)  # Убрать потом
 
 @router.callback_query()
 async def handler(callback: CallbackQuery):
@@ -137,4 +192,4 @@ async def handler(callback: CallbackQuery):
             "Выберите подходящий пак:",
             reply_markup=get_beatmaker_keyboard()
         )
-    print(callback.entities)  # Убрать потом
+    # print(callback.entities)  # Убрать потом
